@@ -1,0 +1,7 @@
+{
+  "name": "Aplikasi Audio Visualizer",
+  "description": "An interactive audio visualizer that brings your music to life. Supports audio file uploads and real-time microphone input with various visualization styles and customizations.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
