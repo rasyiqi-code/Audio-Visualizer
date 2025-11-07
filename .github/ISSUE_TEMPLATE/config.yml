@@ -1,0 +1,12 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/rasyiqi-code/Audio-Visualizer/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📖 Documentation
+    url: https://github.com/rasyiqi-code/Audio-Visualizer/blob/main/README.md
+    about: Read the documentation
+  - name: 🎓 Desktop App Guide
+    url: https://github.com/rasyiqi-code/Audio-Visualizer/blob/main/README-DESKTOP.md
+    about: Learn about the desktop application
+
