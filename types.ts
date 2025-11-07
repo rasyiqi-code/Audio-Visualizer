@@ -6,7 +6,7 @@ export enum AudioSource {
 
 export interface BuiltInVisualization {
   name: string;
-  type: 'BARS' | 'WAVEFORM' | 'CIRCLE';
+  type: 'BARS' | 'WAVEFORM' | 'CIRCLE' | 'MIRROR_BARS' | 'RADIAL_WAVE' | 'PARTICLE_FIELD' | 'DOUBLE_HELIX' | 'SPIRAL_GALAXY' | 'SOUND_PULSE' | 'OSCILLOSCOPE' | 'FREQUENCY_RINGS' | 'STARFIELD' | 'WAVE_CIRCLES' | 'FIREWORKS' | 'EQUALIZER' | 'LIGHTNING' | 'KALEIDOSCOPE' | 'BUBBLES' | 'RIPPLES' | 'SPECTRAL_BANDS' | 'VORTEX' | 'PYRAMID' | 'FLOWER' | 'PULSE_GRID' | 'DIAMOND' | 'WAVEFORM_BARS' | 'NEON_TUNNEL' | 'BINARY_RAIN' | 'POLYGON_MORPH' | 'SPECTRUM_WATERFALL' | 'DOUBLE_SIDED' | 'CRYSTAL_FORMATION' | 'SINE_WAVES' | 'RADAR_SCAN' | 'ENERGY_FIELD' | 'HEXAGON_GRID' | 'CIRCUIT_BOARD' | 'PULSE_BEAM';
 }
 
 export interface CustomVisualization {
@@ -44,3 +44,65 @@ export interface PlaylistItem {
   file: File;
   name: string;
 }
+
+// Effects
+export interface EffectSettings {
+  enabled: boolean;
+  intensity: number;
+}
+
+export interface VisualEffects {
+  // Background Effects
+  animatedBackground: EffectSettings;
+  waveBackground: EffectSettings;
+  gridBackground: EffectSettings;
+  auroraEffect: EffectSettings;
+  floatingOrbs: EffectSettings;
+  
+  // Light Effects
+  cornerSpotlights: EffectSettings;
+  edgeGlow: EffectSettings;
+  lightRays: EffectSettings;
+  lensFlare: EffectSettings;
+  
+  // Overlay Effects
+  floatingParticles: EffectSettings;
+  musicNotation: EffectSettings;
+  orbitingShapes: EffectSettings;
+  scanLines: EffectSettings;
+  
+  // Screen Effects
+  flashEffects: EffectSettings;
+  vignetteEffect: EffectSettings;
+  chromaticAberration: EffectSettings;
+  screenShake: EffectSettings;
+  reactiveBorder: EffectSettings;
+}
+
+export const DEFAULT_EFFECTS: VisualEffects = {
+  // Background Effects
+  animatedBackground: { enabled: true, intensity: 50 },
+  waveBackground: { enabled: false, intensity: 60 },
+  gridBackground: { enabled: false, intensity: 40 },
+  auroraEffect: { enabled: false, intensity: 70 },
+  floatingOrbs: { enabled: false, intensity: 50 },
+  
+  // Light Effects
+  cornerSpotlights: { enabled: true, intensity: 60 },
+  edgeGlow: { enabled: true, intensity: 70 },
+  lightRays: { enabled: false, intensity: 50 },
+  lensFlare: { enabled: false, intensity: 60 },
+  
+  // Overlay Effects
+  floatingParticles: { enabled: true, intensity: 50 },
+  musicNotation: { enabled: true, intensity: 60 },
+  orbitingShapes: { enabled: false, intensity: 60 },
+  scanLines: { enabled: false, intensity: 30 },
+  
+  // Screen Effects
+  flashEffects: { enabled: true, intensity: 40 },
+  vignetteEffect: { enabled: false, intensity: 50 },
+  chromaticAberration: { enabled: false, intensity: 50 },
+  screenShake: { enabled: false, intensity: 50 },
+  reactiveBorder: { enabled: false, intensity: 60 },
+};

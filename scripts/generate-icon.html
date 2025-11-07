@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icon</title>
+</head>
+<body>
+    <h1>Audio Visualizer Icon Generator</h1>
+    <canvas id="canvas" width="512" height="512"></canvas>
+    <br>
+    <button onclick="download()">Download as PNG</button>
+    <p>Setelah download, convert PNG ke ICO di: <a href="https://convertio.co/png-ico/" target="_blank">convertio.co</a></p>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+        gradient.addColorStop(0, '#8B5CF6');  // Purple
+        gradient.addColorStop(1, '#3B82F6');  // Blue
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 512, 512);
+        
+        // Draw waveform bars
+        ctx.fillStyle = 'white';
+        const barWidth = 40;
+        const gap = 20;
+        const heights = [100, 200, 350, 280, 400, 320, 180, 250];
+        
+        for (let i = 0; i < heights.length; i++) {
+            const x = (i * (barWidth + gap)) + 50;
+            const y = (512 - heights[i]) / 2;
+            const height = heights[i];
+            
+            // Rounded rectangle
+            ctx.beginPath();
+            ctx.roundRect(x, y, barWidth, height, 10);
+            ctx.fill();
+        }
+        
+        // Add glow effect
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
+        
+        function download() {
+            const link = document.createElement('a');
+            link.download = 'icon.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+</html>
+

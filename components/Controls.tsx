@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, ChangeEvent } from 'react';
-import { AudioSource, Theme, Visualization, Preset, CustomVisualization } from '../types';
-import { FileUploadIcon, MicIcon, PlayIcon, PauseIcon, FullscreenIcon, SettingsIcon, ColorPaletteIcon, PresetIcon, PlaylistIcon, VideoCameraIcon, RecordingIcon } from './Icons';
+import { AudioSource, Theme, Visualization, Preset, CustomVisualization, VisualEffects } from '../types';
+import { FileUploadIcon, MicIcon, PlayIcon, PauseIcon, FullscreenIcon, SettingsIcon, ColorPaletteIcon, PresetIcon, PlaylistIcon, VideoCameraIcon, RecordingIcon, EffectsIcon } from './Icons';
 import { ControlButton } from './controls/ControlButton';
 import { SettingsMenus } from './controls/SettingsMenus';
 
@@ -13,6 +13,8 @@ interface ControlsProps {
   visualization: Visualization;
   customVisualizations: CustomVisualization[];
   isPlaylistVisible: boolean;
+  effects: VisualEffects;
+  showControls: boolean;
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onMicClick: () => void;
   onPlayPauseClick: () => void;
@@ -25,6 +27,9 @@ interface ControlsProps {
   onGenerateWithAiClick: () => void;
   onExportClick: () => void;
   onImportClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onEffectToggle: (effectName: keyof VisualEffects) => void;
+  onEffectIntensityChange: (effectName: keyof VisualEffects, intensity: number) => void;
+  onCustomThemeClick: () => void;
   togglePlaylist: () => void;
 }
 
@@ -41,7 +46,14 @@ const Controls: React.FC<ControlsProps> = (props) => {
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+    <div 
+      className="absolute bottom-0 left-0 right-0 p-4 z-20 transition-all duration-500 ease-in-out"
+      style={{
+        transform: props.showControls ? 'translateY(0)' : 'translateY(150%)',
+        opacity: props.showControls ? 1 : 0,
+        pointerEvents: props.showControls ? 'auto' : 'none',
+      }}
+    >
       <div className="flex justify-center">
         <div className="bg-black/50 backdrop-blur-md p-2 rounded-full flex items-center gap-2 shadow-lg">
           
@@ -95,6 +107,10 @@ const Controls: React.FC<ControlsProps> = (props) => {
             <PresetIcon />
           </ControlButton>
 
+          <ControlButton title="Visual Effects" onClick={() => handleMenuClick('effects')} isActive={activeMenu === 'effects'} themeColor={props.theme.primary}>
+            <EffectsIcon />
+          </ControlButton>
+
           <div className="h-8 w-px bg-gray-600 mx-2"></div>
 
           <ControlButton
@@ -116,12 +132,16 @@ const Controls: React.FC<ControlsProps> = (props) => {
         currentTheme={props.theme}
         currentVisualization={props.visualization}
         customVisualizations={props.customVisualizations}
+        effects={props.effects}
         onThemeSelect={(name) => { props.onThemeSelect(name); setActiveMenu(null); }}
         onVisualizationSelect={(name) => { props.onVisualizationSelect(name); setActiveMenu(null); }}
         onPresetSelect={(preset) => { props.onPresetSelect(preset); setActiveMenu(null); }}
         onGenerateWithAiClick={() => { props.onGenerateWithAiClick(); setActiveMenu(null); }}
         onExportClick={props.onExportClick}
         onImportClick={props.onImportClick}
+        onEffectToggle={props.onEffectToggle}
+        onEffectIntensityChange={props.onEffectIntensityChange}
+        onCustomThemeClick={() => { props.onCustomThemeClick(); setActiveMenu(null); }}
       />
     </div>
   );
