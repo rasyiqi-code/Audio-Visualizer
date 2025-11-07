@@ -7,7 +7,7 @@ export const ControlButton: React.FC<{ onClick: () => void; children: React.Reac
             title={title}
             onClick={onClick}
             disabled={disabled}
-            className={`p-1.5 sm:p-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation`}
+            className={`p-1.5 sm:p-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation flex-shrink-0`}
             style={{ 
               backgroundColor: isActive ? themeColor : 'rgba(255, 255, 255, 0.1)',
               color: isActive ? 'white' : themeColor,

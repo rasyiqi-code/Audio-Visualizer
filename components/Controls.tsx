@@ -55,8 +55,8 @@ const Controls: React.FC<ControlsProps> = (props) => {
       }}
     >
       <div className="flex justify-center px-2 sm:px-0">
-        <div className="bg-black/50 backdrop-blur-md p-1.5 sm:p-2 rounded-2xl sm:rounded-full flex flex-wrap sm:flex-nowrap items-center justify-center gap-1 sm:gap-2 shadow-lg max-w-full">
-          
+        <div className="bg-black/50 backdrop-blur-md px-2 sm:px-3 py-1.5 sm:p-2 rounded-2xl sm:rounded-full shadow-lg max-w-full overflow-x-auto custom-scrollbar">
+          <div className="inline-flex items-center gap-1 sm:gap-2">
           <input
             type="file"
             ref={fileInputRef}
@@ -84,12 +84,12 @@ const Controls: React.FC<ControlsProps> = (props) => {
             step="0.01"
             defaultValue="1"
             onChange={props.onVolumeChange}
-            className="w-16 sm:w-24 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              className="w-16 sm:w-24 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer flex-shrink-0"
             title="Volume"
             style={{'accentColor': props.theme.primary} as React.CSSProperties}
           />
 
-          <div className="hidden sm:block h-8 w-px bg-gray-600 mx-2"></div>
+            <div className="hidden sm:block h-8 w-px bg-gray-600 mx-2 flex-shrink-0"></div>
 
           <ControlButton title="Playlist" onClick={props.togglePlaylist} themeColor={props.theme.primary} isActive={props.isPlaylistVisible}>
             <PlaylistIcon />
@@ -111,7 +111,7 @@ const Controls: React.FC<ControlsProps> = (props) => {
             <EffectsIcon />
           </ControlButton>
 
-          <div className="hidden sm:block h-8 w-px bg-gray-600 mx-2"></div>
+            <div className="hidden sm:block h-8 w-px bg-gray-600 mx-2 flex-shrink-0"></div>
 
           <ControlButton
             title={props.isRecording ? 'Recording...' : 'Export to MP4'}
@@ -125,6 +125,7 @@ const Controls: React.FC<ControlsProps> = (props) => {
           <ControlButton title="Fullscreen" onClick={props.onFullscreenClick} themeColor={props.theme.primary}>
             <FullscreenIcon />
           </ControlButton>
+          </div>
         </div>
       </div>
       <SettingsMenus
