@@ -54,13 +54,13 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onStartRecor
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-lg text-white border border-gray-700" onClick={e => e.stopPropagation()}>
-                <h2 className="text-2xl font-bold mb-4">Export Visualisasi ke Video MP4</h2>
-                <p className="text-gray-400 mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm p-4" onClick={onClose}>
+            <div className="bg-gray-800 rounded-lg shadow-2xl p-4 sm:p-8 w-full max-w-lg text-white border border-gray-700 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Export Visualisasi ke Video MP4</h2>
+                <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">
                     Konfigurasi pengaturan export video. Audio akan otomatis diulang dari awal dan direkam sampai selesai bersama visualisasi aktif.
                 </p>
-                <div className="mb-6 p-3 bg-blue-900/30 border border-blue-500 rounded-lg text-blue-300 text-sm">
+                <div className="mb-4 sm:mb-6 p-2 sm:p-3 bg-blue-900/30 border border-blue-500 rounded-lg text-blue-300 text-xs sm:text-sm">
                     💡 <strong>Smart Recording:</strong> Jika browser mendukung MP4 native, video akan langsung direkam ke MP4 tanpa konversi (lebih cepat!). Jika tidak, video akan direkam dalam WebM lalu otomatis dikonversi ke MP4 (H.264) menggunakan FFmpeg.
                 </div>
                 
@@ -87,17 +87,17 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onStartRecor
                     
                     <div>
                         <label className="block text-sm font-medium text-gray-300">Rasio Aspek</label>
-                        <div className="mt-1 grid grid-cols-2 gap-4">
+                        <div className="mt-1 grid grid-cols-2 gap-2 sm:gap-4">
                             <button 
                                 onClick={() => setConfig(c => ({...c, aspectRatio: '16:9'}))}
-                                className={`p-4 border-2 rounded-lg flex flex-col items-center justify-center transition-colors ${config.aspectRatio === '16:9' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500'}`}
+                                className={`p-2 sm:p-4 border-2 rounded-lg flex flex-col items-center justify-center transition-colors touch-manipulation ${config.aspectRatio === '16:9' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500'}`}
                             >
                                 <SixteenNineIcon />
                                 <span className="mt-2 text-sm font-medium">16:9 (Landscape)</span>
                             </button>
                             <button
                                 onClick={() => setConfig(c => ({...c, aspectRatio: '9:16'}))}
-                                className={`p-4 border-2 rounded-lg flex flex-col items-center justify-center transition-colors ${config.aspectRatio === '9:16' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500'}`}
+                                className={`p-2 sm:p-4 border-2 rounded-lg flex flex-col items-center justify-center transition-colors touch-manipulation ${config.aspectRatio === '9:16' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500'}`}
                             >
                                 <NineSixteenIcon />
                                 <span className="mt-2 text-sm font-medium">9:16 (Portrait)</span>

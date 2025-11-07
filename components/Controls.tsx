@@ -47,15 +47,15 @@ const Controls: React.FC<ControlsProps> = (props) => {
 
   return (
     <div 
-      className="absolute bottom-0 left-0 right-0 p-4 z-20 transition-all duration-500 ease-in-out"
+      className="absolute bottom-0 left-0 right-0 p-2 sm:p-4 z-20 transition-all duration-500 ease-in-out"
       style={{
         transform: props.showControls ? 'translateY(0)' : 'translateY(150%)',
         opacity: props.showControls ? 1 : 0,
         pointerEvents: props.showControls ? 'auto' : 'none',
       }}
     >
-      <div className="flex justify-center">
-        <div className="bg-black/50 backdrop-blur-md p-2 rounded-full flex items-center gap-2 shadow-lg">
+      <div className="flex justify-center px-2 sm:px-0">
+        <div className="bg-black/50 backdrop-blur-md p-1.5 sm:p-2 rounded-2xl sm:rounded-full flex flex-wrap sm:flex-nowrap items-center justify-center gap-1 sm:gap-2 shadow-lg max-w-full">
           
           <input
             type="file"
@@ -84,12 +84,12 @@ const Controls: React.FC<ControlsProps> = (props) => {
             step="0.01"
             defaultValue="1"
             onChange={props.onVolumeChange}
-            className="w-24 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+            className="w-16 sm:w-24 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
             title="Volume"
             style={{'accentColor': props.theme.primary} as React.CSSProperties}
           />
 
-          <div className="h-8 w-px bg-gray-600 mx-2"></div>
+          <div className="hidden sm:block h-8 w-px bg-gray-600 mx-2"></div>
 
           <ControlButton title="Playlist" onClick={props.togglePlaylist} themeColor={props.theme.primary} isActive={props.isPlaylistVisible}>
             <PlaylistIcon />
@@ -111,7 +111,7 @@ const Controls: React.FC<ControlsProps> = (props) => {
             <EffectsIcon />
           </ControlButton>
 
-          <div className="h-8 w-px bg-gray-600 mx-2"></div>
+          <div className="hidden sm:block h-8 w-px bg-gray-600 mx-2"></div>
 
           <ControlButton
             title={props.isRecording ? 'Recording...' : 'Export to MP4'}

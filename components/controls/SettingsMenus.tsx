@@ -43,10 +43,10 @@ export const SettingsMenus: React.FC<SettingsMenusProps> = ({
   const allVisualizations = [...BUILT_IN_VISUALIZATIONS, ...customVisualizations];
 
   return (
-    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm bg-black/70 backdrop-blur-md rounded-lg shadow-lg text-white animate-fade-in-up">
+    <div className="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] sm:w-full max-w-sm bg-black/70 backdrop-blur-md rounded-lg shadow-lg text-white animate-fade-in-up">
       {activeMenu === 'visualizations' && (
-        <div className="p-4 max-h-[70vh] flex flex-col">
-          <h3 className="font-bold text-lg mb-3 flex items-center gap-2 sticky top-0 bg-black/90 py-2 z-10">
+        <div className="p-3 sm:p-4 max-h-[60vh] sm:max-h-[70vh] flex flex-col">
+          <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 flex items-center gap-2 sticky top-0 bg-black/90 py-2 z-10">
             <ColorPaletteIcon/>
             Visualizations <span className="text-sm font-normal text-gray-400">({allVisualizations.length})</span>
           </h3>
@@ -105,8 +105,8 @@ export const SettingsMenus: React.FC<SettingsMenusProps> = ({
         </div>
       )}
       {activeMenu === 'themes' && (
-        <div className="p-4 max-h-[70vh] flex flex-col">
-          <h3 className="font-bold text-lg mb-3 flex items-center gap-2 sticky top-0 bg-black/90 py-2 z-10">
+        <div className="p-3 sm:p-4 max-h-[60vh] sm:max-h-[70vh] flex flex-col">
+          <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 flex items-center gap-2 sticky top-0 bg-black/90 py-2 z-10">
             <ColorPaletteIcon/>
             Color Themes <span className="text-sm font-normal text-gray-400">({THEMES.length})</span>
           </h3>
@@ -177,8 +177,8 @@ export const SettingsMenus: React.FC<SettingsMenusProps> = ({
         </div>
       )}
       {activeMenu === 'presets' && (
-        <div className="p-4 max-h-[70vh] flex flex-col">
-          <h3 className="font-bold text-lg mb-3 flex items-center gap-2 sticky top-0 bg-black/90 py-2 z-10">
+        <div className="p-3 sm:p-4 max-h-[60vh] sm:max-h-[70vh] flex flex-col">
+          <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 flex items-center gap-2 sticky top-0 bg-black/90 py-2 z-10">
             <PresetIcon /> 
             Presets <span className="text-sm font-normal text-gray-400">({PRESETS.length})</span>
           </h3>
@@ -215,8 +215,8 @@ export const SettingsMenus: React.FC<SettingsMenusProps> = ({
         </div>
       )}
       {activeMenu === 'effects' && (
-        <div className="p-4 max-h-[70vh] flex flex-col">
-          <h3 className="font-bold text-lg mb-3 flex items-center gap-2 sticky top-0 bg-black/90 py-2 z-10">
+        <div className="p-3 sm:p-4 max-h-[60vh] sm:max-h-[70vh] flex flex-col">
+          <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 flex items-center gap-2 sticky top-0 bg-black/90 py-2 z-10">
             <EffectsIcon />
             Visual Effects <span className="text-sm font-normal text-gray-400">(18)</span>
           </h3>

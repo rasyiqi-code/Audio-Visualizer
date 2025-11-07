@@ -1,0 +1,31 @@
+# Node modules
+node_modules
+
+# Electron build
+electron
+dist-electron
+release
+
+# Development
+.env.local
+.env*.local
+
+# Editor
+.vscode
+.cursor
+.idea
+
+# Git
+.git
+.gitignore
+
+# Documentation (tidak perlu di deploy)
+ELECTRON.md
+README-DESKTOP.md
+ICON-SETUP.md
+QUICK-ICON-GUIDE.md
+
+# Misc
+*.log
+.DS_Store
+

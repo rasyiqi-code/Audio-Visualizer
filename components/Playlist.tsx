@@ -14,9 +14,9 @@ const Playlist: React.FC<PlaylistProps> = ({ playlist, currentTrackIndex, theme,
     if (playlist.length === 0) return null;
 
     return (
-        <div className="absolute top-0 right-0 m-4 mt-20 bg-black bg-opacity-70 backdrop-blur-md rounded-lg shadow-lg w-full max-w-sm max-h-[calc(100vh-12rem)] overflow-y-auto z-20">
-            <div className="p-4">
-                <h3 className="text-lg font-bold mb-3" style={{ color: theme.highlight }}>Playlist</h3>
+        <div className="absolute top-0 left-0 sm:left-auto right-0 m-2 sm:m-4 mt-12 sm:mt-20 bg-black bg-opacity-70 backdrop-blur-md rounded-lg shadow-lg w-[calc(100%-1rem)] sm:w-full max-w-sm max-h-[calc(100vh-10rem)] sm:max-h-[calc(100vh-12rem)] overflow-y-auto z-20">
+            <div className="p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3" style={{ color: theme.highlight }}>Playlist</h3>
                 <ul>
                     {playlist.map((track, index) => (
                         <li 
