@@ -488,9 +488,14 @@ function App() {
       setConversionProgress(0);
       setConversionStatus('Initializing offline rendering...');
 
-      // Create offline renderer
-      const renderer = new OfflineRenderer();
+      // Create offline renderer dengan container reference
+      if (!mainContainerRef.current) {
+        throw new Error('Main container ref not available');
+      }
+      
+      const renderer = new OfflineRenderer(mainContainerRef.current);
       offlineRendererRef.current = renderer;
+      console.log('✅ OfflineRenderer created with container ref');
 
       // Render all frames dengan FPS lebih rendah untuk faster processing
       await renderer.renderVideo(audio, {
