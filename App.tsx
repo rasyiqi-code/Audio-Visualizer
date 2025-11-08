@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
-import { AudioSource, Theme, Visualization, Preset, CustomVisualization, PlaylistItem, VisualEffects, DEFAULT_EFFECTS } from './types';
+import { AudioSource, Theme, Visualization, Preset, CustomVisualization, PlaylistItem, VisualEffects, DEFAULT_EFFECTS, BackgroundImageSettings } from './types';
 import { THEMES, BUILT_IN_VISUALIZATIONS, PRESETS } from './constants';
 import { getCustomVisualizations, saveCustomVisualization, exportVisualizations, importVisualizations } from './utils/localStorageManager';
 import { fileToBase64 } from './utils/imageUtils';
-import { convertWebMToMP4 } from './utils/ffmpegConverter';
+import { OfflineRenderer } from './utils/offlineRenderer';
 
 import Watermark from './components/Watermark';
 import Visualizer from './components/Visualizer';
@@ -15,7 +15,7 @@ import Playlist from './components/Playlist';
 import ExportModal, { ExportConfig } from './components/ExportModal';
 import EffectsLayer from './components/effects';
 import CustomThemeEditor from './components/controls/CustomThemeEditor';
-import ElectronTitleBar from './components/ElectronTitleBar';
+import BackgroundImage from './components/BackgroundImage';
 import { useAudioVisualizer } from './hooks/useAudioVisualizer';
 
 function App() {
@@ -42,10 +42,22 @@ function App() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [showCustomThemeEditor, setShowCustomThemeEditor] = useState(false);
+  const [isCinemaMode, setIsCinemaMode] = useState<boolean>(false);
+  const [showCinemaModeIndicator, setShowCinemaModeIndicator] = useState<boolean>(false);
 
   // Visual effects state
   const [effects, setEffects] = useState<VisualEffects>(DEFAULT_EFFECTS);
   const audioDataRef = useRef<Uint8Array>(new Uint8Array(0));
+
+  // Background image state
+  const [backgroundImage, setBackgroundImage] = useState<BackgroundImageSettings>({
+    imageUrl: null,
+    opacity: 50,
+    blur: 0,
+    brightness: 100,
+    scale: 100,
+    position: 'fill'
+  });
 
   // UI state for auto-hide controls
   const [showControls, setShowControls] = useState<boolean>(true);
@@ -56,8 +68,9 @@ function App() {
   const mainContainerRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
+  const offlineRendererRef = useRef<OfflineRenderer | null>(null);
 
-  const { analyser, initializeAudioContext, setupAudioFromFile, setupAudioFromMic, disconnectSource, setVolume } = useAudioVisualizer();
+  const { analyser, sourceNode, audioContext, initializeAudioContext, setupAudioFromFile, setupAudioFromMic, disconnectSource, setVolume } = useAudioVisualizer();
 
   // Load custom visualizations from local storage on initial render
   useEffect(() => {
@@ -75,9 +88,12 @@ function App() {
     }
   }, []);
 
-  // Auto-hide controls after 3 seconds of inactivity
+  // Auto-hide controls after 3 seconds of inactivity (DISABLED in cinema mode)
   useEffect(() => {
     const handleMouseMove = () => {
+      // Don't show controls if cinema mode active
+      if (isCinemaMode) return;
+      
       setShowControls(true);
       
       // Clear existing timer
@@ -87,14 +103,17 @@ function App() {
       
       // Set new timer to hide controls after 3 seconds
       hideControlsTimerRef.current = setTimeout(() => {
-        // Don't hide if modal is open or not playing
-        if (!isAiModalOpen && !isExportModalOpen && !showCustomThemeEditor && (isPlaying || isRecording)) {
+        // Don't hide if modal is open or not playing or cinema mode
+        if (!isAiModalOpen && !isExportModalOpen && !showCustomThemeEditor && !isCinemaMode && (isPlaying || isRecording)) {
           setShowControls(false);
         }
       }, 3000);
     };
 
     const handleMouseLeave = () => {
+      // Don't auto-hide in cinema mode
+      if (isCinemaMode) return;
+      
       // Start hide timer when mouse leaves window
       if ((isPlaying || isRecording) && !isAiModalOpen && !isExportModalOpen && !showCustomThemeEditor) {
         hideControlsTimerRef.current = setTimeout(() => {
@@ -113,17 +132,44 @@ function App() {
         clearTimeout(hideControlsTimerRef.current);
       }
     };
-  }, [isPlaying, isRecording, isAiModalOpen, isExportModalOpen, showCustomThemeEditor]);
+  }, [isPlaying, isRecording, isAiModalOpen, isExportModalOpen, showCustomThemeEditor, isCinemaMode]);
 
-  // Always show controls when not playing or when modals are open
+  // Control visibility logic (with cinema mode priority)
   useEffect(() => {
+    // Cinema mode has absolute priority - always hide controls
+    if (isCinemaMode) {
+      setShowControls(false);
+      return;
+    }
+    
+    // Show controls when not playing or when modals are open
     if (!isPlaying && !isRecording) {
       setShowControls(true);
+      return;
     }
+    
     if (isAiModalOpen || isExportModalOpen || showCustomThemeEditor) {
       setShowControls(true);
+      return;
     }
-  }, [isPlaying, isRecording, isAiModalOpen, isExportModalOpen, showCustomThemeEditor]);
+  }, [isPlaying, isRecording, isAiModalOpen, isExportModalOpen, showCustomThemeEditor, isCinemaMode]);
+
+  // Auto-hide cinema mode indicator after 5 seconds
+  useEffect(() => {
+    if (isCinemaMode) {
+      setShowCinemaModeIndicator(true);
+      
+      // Hide indicator after 5 seconds
+      const timer = setTimeout(() => {
+        setShowCinemaModeIndicator(false);
+        console.log('ℹ️ Cinema mode indicator auto-hidden');
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setShowCinemaModeIndicator(false);
+    }
+  }, [isCinemaMode]);
 
   // Update audio data for effects continuously
   useEffect(() => {
@@ -145,6 +191,60 @@ function App() {
       if (animationId) cancelAnimationFrame(animationId);
     };
   }, [analyser, isPlaying, isRecording]);
+
+  // Keyboard controls untuk cinema mode
+  useEffect(() => {
+    let spaceTimeout: NodeJS.Timeout | null = null;
+    let lastSpacePress = 0;
+    
+    const handleKeyboard = (e: KeyboardEvent) => {
+      // ESC: Exit cinema mode
+      if (e.key === 'Escape' && isCinemaMode) {
+        setIsCinemaMode(false);
+        console.log('✅ Cinema mode disabled');
+        return;
+      }
+
+      // Space: Only works in cinema mode
+      if (e.key === ' ' && isCinemaMode) {
+        e.preventDefault(); // Prevent page scroll
+        
+        const now = Date.now();
+        const timeSinceLastPress = now - lastSpacePress;
+        
+        // Double press detection (< 300ms between presses)
+        if (timeSinceLastPress < 300 && lastSpacePress !== 0) {
+          // Double space: Restart lagu dari awal
+          if (audioElementRef.current) {
+            audioElementRef.current.currentTime = 0;
+            if (audioElementRef.current.paused) {
+              audioElementRef.current.play().catch(console.error);
+            }
+            console.log('⏮️ Restarted from beginning (double space)');
+          }
+          lastSpacePress = 0; // Reset
+        } else {
+          // Single space: Pause/Play
+          if (audioElementRef.current) {
+            if (audioElementRef.current.paused) {
+              audioElementRef.current.play().catch(console.error);
+              console.log('▶️ Playing (space)');
+            } else {
+              audioElementRef.current.pause();
+              console.log('⏸️ Paused (space)');
+            }
+          }
+          lastSpacePress = now;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyboard);
+    return () => {
+      window.removeEventListener('keydown', handleKeyboard);
+      if (spaceTimeout) clearTimeout(spaceTimeout);
+    };
+  }, [isCinemaMode]);
 
   // Setup audio from file when the current track changes
   useEffect(() => {
@@ -318,270 +418,171 @@ function App() {
         setCustomVisualizations(getCustomVisualizations());
     });
   };
+
+  const handleBackgroundImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Mohon pilih file gambar yang valid');
+      return;
+    }
+
+    // Create object URL for the image
+    const imageUrl = URL.createObjectURL(file);
+    setBackgroundImage(prev => ({
+      ...prev,
+      imageUrl
+    }));
+  };
+
+  const handleRemoveBackgroundImage = () => {
+    if (backgroundImage.imageUrl) {
+      URL.revokeObjectURL(backgroundImage.imageUrl);
+    }
+    setBackgroundImage(prev => ({
+      ...prev,
+      imageUrl: null
+    }));
+  };
+
+  const handleBackgroundImageSettingChange = (key: keyof BackgroundImageSettings, value: number | string) => {
+    setBackgroundImage(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
   
   const handleStartRecording = async (config: ExportConfig) => {
-    const canvas = document.getElementById('visualizer-canvas') as HTMLCanvasElement;
-    if (!canvas || (!audioElementRef.current && !micStreamRef.current)) {
-        alert("Tidak dapat memulai recording. Tidak ada audio source atau canvas visualizer.");
+    // OFFLINE RENDERING METHOD
+    // Render frame-by-frame (NOT real-time), then assemble with FFmpeg
+    // This GUARANTEES all effects are included and perfect quality
+    
+    if (!audioElementRef.current) {
+        alert("Tidak dapat memulai rendering. Silakan upload audio file.");
         return;
     }
 
-    // Reset audio to beginning for full duration recording
-    if (audioSource === AudioSource.FILE && audioElementRef.current) {
-        const audio = audioElementRef.current;
-        console.log("🎵 Resetting audio to beginning...");
-        console.log("Current time before reset:", audio.currentTime);
-        
-        audio.currentTime = 0;
-        console.log("Current time after reset:", audio.currentTime);
-        
-        // Ensure audio is playing and wait for it to actually start
-        try {
-            console.log("▶️ Starting audio playback...");
-            await audio.play();
-            // Wait a bit for audio to stabilize
-            await new Promise(resolve => setTimeout(resolve, 100));
-            console.log("✅ Audio playing successfully");
-        } catch (error) {
-            console.error("❌ Error playing audio:", error);
-            alert("Gagal memutar audio. Silakan coba lagi.");
-            return;
-        }
-        
-        // Verify audio is actually playing
-        if (audio.paused) {
-            console.error("❌ Audio is paused after play attempt");
-            alert("Audio tidak dapat diputar. Silakan coba lagi.");
-            return;
-        }
-        
-        console.log("✅ Audio ready for recording. Duration:", audio.duration);
+    const audio = audioElementRef.current;
+    const duration = audio.duration;
+
+    if (!duration || duration === 0) {
+        alert("Audio belum ready atau duration tidak valid.");
+        return;
     }
 
-    // Store original canvas size to restore later
-    const originalWidth = canvas.width;
-    const originalHeight = canvas.height;
-
-    // Set canvas resolution based on config
+    // Determine target resolution
     const resolutionMap = {
       '16:9': { '720p': { width: 1280, height: 720 }, '1080p': { width: 1920, height: 1080 } },
       '9:16': { '720p': { width: 720, height: 1280 }, '1080p': { width: 1080, height: 1920 } },
     };
     const targetResolution = resolutionMap[config.aspectRatio][config.resolution];
-    canvas.width = targetResolution.width;
-    canvas.height = targetResolution.height;
-
-    // Capture video stream from canvas
-    const videoStream = canvas.captureStream(30); // 30 FPS
-    let audioStream: MediaStream | null = null;
-    let audioDestNode: MediaStreamAudioDestinationNode | null = null;
 
     try {
-      if (audioSource === AudioSource.FILE && audioElementRef.current && analyser) {
-        // Use existing audio context instead of creating new one
-        const audioCtx = analyser.context as AudioContext;
-        audioDestNode = audioCtx.createMediaStreamDestination();
-        
-        // Connect the current audio path to destination
-        analyser.connect(audioDestNode);
-        audioStream = audioDestNode.stream;
-      } else if (audioSource === AudioSource.MICROPHONE && micStreamRef.current) {
-        audioStream = micStreamRef.current;
-      } else {
-        alert("Tidak ada audio source yang valid untuk direkam.");
-        // Restore canvas size
-        canvas.width = originalWidth;
-        canvas.height = originalHeight;
-        return;
-      }
+      console.log('🎬 Starting OFFLINE rendering (frame-by-frame)...');
+      console.log(`📊 Duration: ${duration}s, Resolution: ${targetResolution.width}x${targetResolution.height}`);
       
-      const combinedStream = new MediaStream([
-        ...videoStream.getVideoTracks(),
-        ...(audioStream?.getAudioTracks() || [])
-      ]);
-
-      // Determine best supported mime type - prioritize MP4 if available
-      let mimeType = '';
-      let fileExtension = '';
-      let isNativeMP4 = false;
-      
-      // Try MP4 codecs first (native support = no conversion needed!)
-      const mp4CodecsToTry = [
-        'video/mp4;codecs=h264,aac',
-        'video/mp4;codecs=avc1,mp4a.40.2',
-        'video/mp4'
-      ];
-      
-      for (const codec of mp4CodecsToTry) {
-        if (MediaRecorder.isTypeSupported(codec)) {
-          mimeType = codec;
-          fileExtension = '.mp4';
-          isNativeMP4 = true;
-          console.log('✅ Browser mendukung MP4 native:', codec);
-          break;
-        }
-      }
-      
-      // Fallback to WebM if MP4 not supported
-      if (!mimeType) {
-        const webmCodecsToTry = [
-          'video/webm;codecs=vp9,opus',
-          'video/webm;codecs=vp8,opus', 
-          'video/webm;codecs=h264,opus',
-          'video/webm'
-        ];
-
-        for (const codec of webmCodecsToTry) {
-          if (MediaRecorder.isTypeSupported(codec)) {
-            mimeType = codec;
-            fileExtension = '.webm';
-            console.log('⚠️ Browser tidak support MP4 native, menggunakan WebM:', codec);
-            break;
-          }
-        }
-      }
-
-      if (!mimeType) {
-        alert("Browser Anda tidak mendukung recording video. Silakan gunakan browser modern seperti Chrome atau Firefox.");
-        canvas.width = originalWidth;
-        canvas.height = originalHeight;
-        return;
-      }
-
-      const options = { mimeType, videoBitsPerSecond: 5000000 }; // 5 Mbps
-      mediaRecorderRef.current = new MediaRecorder(combinedStream, options);
-      
-      const chunks: Blob[] = [];
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      };
-      
-      mediaRecorderRef.current.onstop = async () => {
-        const recordedBlob = new Blob(chunks, { type: mimeType });
-        
-        // Cleanup audio node immediately
-        if (audioDestNode) {
-          audioDestNode.disconnect();
-        }
-        
-        // Restore original canvas size
-        canvas.width = originalWidth;
-        canvas.height = originalHeight;
-        
-        setIsRecording(false);
-        
-        // Check if we need to convert to MP4 (only if recorded in WebM and user wants MP4)
-        const needsConversion = !isNativeMP4 && config.format === 'mp4';
-        
-        if (needsConversion) {
-          console.log('🔄 Converting WebM to MP4...');
-          try {
-            setIsConverting(true);
-            setConversionProgress(0);
-            setConversionStatus('Initializing conversion...');
-            
-            // Convert webm to mp4
-            const mp4Blob = await convertWebMToMP4(
-              recordedBlob,
-              (progress, message) => {
-                setConversionProgress(progress);
-                setConversionStatus(message);
-              }
-            );
-            
-            // Download converted MP4
-            const url = URL.createObjectURL(mp4Blob);
-            const a = document.createElement('a');
-            a.href = url;
-            
-            let fileName = config.fileName;
-            if (!fileName.endsWith('.mp4')) {
-              fileName = fileName.replace(/\.(mp4|webm)$/i, '') + '.mp4';
-            }
-            a.download = fileName;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            setIsConverting(false);
-            setConversionProgress(0);
-            setConversionStatus('');
-            console.log('✅ Conversion complete!');
-          } catch (error) {
-            console.error('❌ Conversion error:', error);
-            setIsConverting(false);
-            setConversionProgress(0);
-            setConversionStatus('');
-            
-            // Fallback: download original webm
-            alert(`Konversi ke MP4 gagal: ${(error as Error).message}\n\nFile akan disimpan dalam format WebM.`);
-            const url = URL.createObjectURL(recordedBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            let fileName = config.fileName.replace(/\.mp4$/i, '.webm');
-            a.download = fileName;
-            a.click();
-            URL.revokeObjectURL(url);
-          }
-        } else {
-          // Download directly without conversion (native MP4 or user wants WebM)
-          console.log(`✅ Downloading ${isNativeMP4 ? 'native MP4' : 'WebM'} file directly (no conversion needed)`);
-          const url = URL.createObjectURL(recordedBlob);
-          const a = document.createElement('a');
-          a.href = url;
-          
-          let fileName = config.fileName;
-          if (!fileName.endsWith(fileExtension)) {
-            fileName = fileName.replace(/\.(mp4|webm)$/i, '') + fileExtension;
-          }
-          a.download = fileName;
-          a.click();
-          URL.revokeObjectURL(url);
-        }
-      };
-
-      mediaRecorderRef.current.onerror = (event) => {
-        console.error("MediaRecorder error:", event);
-        alert("Terjadi error saat recording. Silakan coba lagi.");
-        
-        // Cleanup on error
-        if (audioDestNode) {
-          audioDestNode.disconnect();
-        }
-        canvas.width = originalWidth;
-        canvas.height = originalHeight;
-        setIsRecording(false);
-      };
-
-      mediaRecorderRef.current.start(100); // Capture data every 100ms
       setIsRecording(true);
+      setIsConverting(true);
+      setConversionProgress(0);
+      setConversionStatus('Initializing offline rendering...');
+
+      // Create offline renderer
+      const renderer = new OfflineRenderer();
+      offlineRendererRef.current = renderer;
+
+      // Render all frames dengan FPS lebih rendah untuk faster processing
+      await renderer.renderVideo(audio, {
+        fps: 15, // 15 FPS untuk faster rendering while still smooth
+        duration: duration,
+        width: targetResolution.width,
+        height: targetResolution.height,
+        audioBitrate: 128
+      }, (progress, message) => {
+        setConversionProgress(progress);
+        setConversionStatus(message);
+      });
+
+      console.log('✅ Frame rendering complete!');
+      setConversionStatus('Extracting audio...');
+
+      // Get audio as blob (fetch dari audio src)
+      const audioResponse = await fetch(audio.src);
+      const audioBlob = await audioResponse.blob();
+      console.log(`✅ Audio extracted: ${(audioBlob.size / 1024 / 1024).toFixed(2)} MB`);
+
+      // Assemble frames + audio dengan FFmpeg
+      setConversionStatus('Assembling video with FFmpeg...');
+      const videoBlob = await renderer.assembleVideo(
+        audioBlob,
+        {
+          fps: 15, // Match rendering FPS
+          duration: duration,
+          width: targetResolution.width,
+          height: targetResolution.height,
+          audioBitrate: 128
+        },
+        config.format as 'mp4' | 'webm',
+        (progress, message) => {
+          setConversionProgress(progress);
+          setConversionStatus(message);
+        }
+      );
+
+      console.log('✅ Video assembled successfully!');
       
-      // Auto-stop when audio ends
-      if(audioElementRef.current) {
-        const handleAudioEnd = () => {
-          if (mediaRecorderRef.current?.state === 'recording') {
-            mediaRecorderRef.current.stop();
-          }
-        };
-        audioElementRef.current.addEventListener('ended', handleAudioEnd, { once: true });
-      }
-    } catch (error) {
-      console.error("Error starting recording:", error);
-      alert("Gagal memulai recording: " + (error as Error).message);
+      // Download video
+      const url = URL.createObjectURL(videoBlob);
+      const a = document.createElement('a');
+      a.href = url;
       
-      // Cleanup on error
-      if (audioDestNode) {
-        audioDestNode.disconnect();
+      let fileName = config.fileName;
+      if (!fileName.endsWith(`.${config.format}`)) {
+        fileName = fileName.replace(/\.(mp4|webm)$/i, '') + `.${config.format}`;
       }
-      canvas.width = originalWidth;
-      canvas.height = originalHeight;
+      a.download = fileName;
+      
+      console.log(`📥 Downloading: ${fileName} (${(videoBlob.size / 1024 / 1024).toFixed(2)} MB)`);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      
       setIsRecording(false);
+      setIsConverting(false);
+      setConversionProgress(0);
+      setConversionStatus('');
+      
+      alert(`✅ Video berhasil di-export!\n\nFile: ${fileName}\nSize: ${(videoBlob.size / 1024 / 1024).toFixed(2)} MB\n\nSemua efek visual terecord sempurna!`);
+      
+      console.log('✅ Export complete!');
+
+    } catch (error) {
+      console.error("Error during offline rendering:", error);
+      alert("Gagal render video: " + (error as Error).message);
+      
+      setIsRecording(false);
+      setIsConverting(false);
+      setConversionProgress(0);
+      setConversionStatus('');
+      
+      if (offlineRendererRef.current) {
+        offlineRendererRef.current.stopRendering();
+        offlineRendererRef.current = null;
+      }
     }
   };
 
   const handleStopRecording = () => {
-    mediaRecorderRef.current?.stop();
+    console.log('🛑 Stopping offline rendering...');
+    if (offlineRendererRef.current) {
+      offlineRendererRef.current.stopRendering();
+      offlineRendererRef.current = null;
+    }
+    setIsRecording(false);
+    setIsConverting(false);
   };
 
   const handleExportVideo = () => {
@@ -621,6 +622,15 @@ function App() {
     }
   }, [currentTrackIndex, playlist]);
 
+  // Cleanup background image URL on unmount
+  useEffect(() => {
+    return () => {
+      if (backgroundImage.imageUrl) {
+        URL.revokeObjectURL(backgroundImage.imageUrl);
+      }
+    };
+  }, [backgroundImage.imageUrl]);
+
   const currentTrackUrl = currentTrackUrlRef.current;
 
   return (
@@ -629,12 +639,9 @@ function App() {
       className="relative w-screen h-screen overflow-hidden flex flex-col transition-all duration-300" 
       style={{ 
         backgroundColor: theme.background,
-        cursor: showControls ? 'default' : 'none' // Hide cursor when controls hidden
+        cursor: (isCinemaMode || !showControls) ? 'none' : 'default' // Hide cursor in cinema mode or when controls hidden
       }}
     >
-      {/* Electron Title Bar (only shows in desktop app) */}
-      <ElectronTitleBar />
-      
       <audio
         ref={audioElementRef}
         src={currentTrackUrl || undefined}
@@ -645,8 +652,11 @@ function App() {
         crossOrigin="anonymous"
       />
       <main className="flex-grow relative" style={{ transition: 'transform 0.1s ease-out' }}>
-        {/* Watermark */}
-        <Watermark theme={theme} isPlaying={isPlaying} audioData={audioDataRef.current} />
+        {/* Background Image */}
+        <BackgroundImage settings={backgroundImage} isPlaying={isPlaying || isRecording} />
+        
+        {/* Watermark - hidden in cinema mode */}
+        {!isCinemaMode && <Watermark theme={theme} isPlaying={isPlaying} audioData={audioDataRef.current} />}
         
         {/* Visual Effects Layer */}
         <EffectsLayer 
@@ -662,16 +672,16 @@ function App() {
         
         {audioSource === AudioSource.NONE && <WelcomeScreen theme={theme} />}
         
-        {/* Recording Indicator */}
-        {isRecording && (
+        {/* Recording Indicator - hidden in cinema mode */}
+        {isRecording && !isCinemaMode && (
           <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-pulse">
             <div className="w-3 h-3 bg-white rounded-full"></div>
             <span className="font-bold">RECORDING</span>
           </div>
         )}
 
-        {/* Show Controls Indicator (when hidden) */}
-        {!showControls && (isPlaying || isRecording) && (
+        {/* Show Controls Indicator (when hidden) - hidden in cinema mode */}
+        {!showControls && (isPlaying || isRecording) && !isCinemaMode && (
           <div 
             className="absolute bottom-2 left-1/2 -translate-x-1/2 text-white/40 text-xs flex items-center gap-1 animate-pulse"
             style={{ zIndex: 19 }}
@@ -680,6 +690,28 @@ function App() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
             </svg>
             <span>Move mouse to show controls</span>
+          </div>
+        )}
+        
+        {/* Cinema Mode Indicator - auto-hide after 5 seconds */}
+        {isCinemaMode && showCinemaModeIndicator && (
+          <div 
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/90 text-white px-6 py-3 rounded-full shadow-lg transition-opacity duration-500"
+            style={{ 
+              zIndex: 45,
+              opacity: showCinemaModeIndicator ? 1 : 0
+            }}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="font-bold">CINEMA MODE</span>
+              </div>
+              <div className="text-xs text-gray-300 flex flex-col items-center gap-1">
+                <div>Press <kbd className="bg-gray-700 px-2 py-0.5 rounded">ESC</kbd> to exit</div>
+                <div><kbd className="bg-gray-700 px-2 py-0.5 rounded">SPACE</kbd> to pause/play • Double <kbd className="bg-gray-700 px-2 py-0.5 rounded">SPACE</kbd> to restart</div>
+              </div>
+            </div>
           </div>
         )}
         
@@ -715,7 +747,7 @@ function App() {
         )}
       </main>
 
-      {isPlaylistVisible && (
+      {isPlaylistVisible && !isCinemaMode && (
         <div
           className="transition-all duration-500 ease-in-out"
           style={{
@@ -743,6 +775,7 @@ function App() {
         isPlaylistVisible={isPlaylistVisible}
         effects={effects}
         showControls={showControls}
+        backgroundImage={backgroundImage}
         onFileChange={handleFileChange}
         onMicClick={handleMicClick}
         onPlayPauseClick={handlePlayPauseClick}
@@ -769,6 +802,10 @@ function App() {
         }}
         onCustomThemeClick={() => setShowCustomThemeEditor(true)}
         togglePlaylist={() => setIsPlaylistVisible(v => !v)}
+        onCinemaModeToggle={() => setIsCinemaMode(v => !v)}
+        onBackgroundImageChange={handleBackgroundImageChange}
+        onRemoveBackgroundImage={handleRemoveBackgroundImage}
+        onBackgroundImageSettingChange={handleBackgroundImageSettingChange}
       />
 
       <GenerateWithAiModal

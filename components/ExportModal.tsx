@@ -58,10 +58,16 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onStartRecor
             <div className="bg-gray-800 rounded-lg shadow-2xl p-4 sm:p-8 w-full max-w-lg text-white border border-gray-700 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Export Visualisasi ke Video MP4</h2>
                 <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">
-                    Konfigurasi pengaturan export video. Audio akan otomatis diulang dari awal dan direkam sampai selesai bersama visualisasi aktif.
+                    Export video menggunakan <strong>Offline Rendering</strong> - render frame-by-frame lalu assemble dengan FFmpeg untuk kualitas sempurna.
                 </p>
+                <div className="mb-4 sm:mb-6 p-2 sm:p-3 bg-green-900/30 border border-green-500 rounded-lg text-green-300 text-xs sm:text-sm">
+                    ✅ <strong>Offline Rendering:</strong> Semua efek visual, visualizer, dan animasi akan di-capture frame-by-frame @ 20 FPS lalu digabungkan dengan FFmpeg untuk hasil sempurna tanpa corruption.
+                </div>
+                <div className="mb-4 sm:mb-6 p-2 sm:p-3 bg-yellow-900/30 border border-yellow-500 rounded-lg text-yellow-300 text-xs sm:text-sm">
+                    ⏱️ <strong>Processing Time (Optimized):</strong> ~30 detik untuk 30 detik audio, ~1 menit untuk 1 menit audio. Faster processing dengan 15 FPS, tapi hasil tetap smooth dan semua efek included!
+                </div>
                 <div className="mb-4 sm:mb-6 p-2 sm:p-3 bg-blue-900/30 border border-blue-500 rounded-lg text-blue-300 text-xs sm:text-sm">
-                    💡 <strong>Smart Recording:</strong> Jika browser mendukung MP4 native, video akan langsung direkam ke MP4 tanpa konversi (lebih cepat!). Jika tidak, video akan direkam dalam WebM lalu otomatis dikonversi ke MP4 (H.264) menggunakan FFmpeg.
+                    💡 <strong>Tips:</strong> Untuk video pertama, test dengan audio 15-30 detik. Jangan minimize browser selama processing. Progress bar akan update setiap detik.
                 </div>
                 
                 {!recordingSupported && (

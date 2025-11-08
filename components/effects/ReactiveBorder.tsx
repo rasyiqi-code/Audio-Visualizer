@@ -110,7 +110,7 @@ const ReactiveBorder: React.FC<ReactiveBorderProps> = ({ theme, intensity, analy
     };
   }, [theme, intensity, analyser, isPlaying]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 100 }} />;
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 15 }} />;
 };
 
 export default ReactiveBorder;

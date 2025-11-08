@@ -103,6 +103,8 @@ export const useAudioVisualizer = () => {
 
   return {
     analyser: audioState.analyser,
+    sourceNode: audioState.sourceNode,
+    audioContext: audioContextRef.current,
     initializeAudioContext,
     setupAudioFromFile,
     setupAudioFromMic,

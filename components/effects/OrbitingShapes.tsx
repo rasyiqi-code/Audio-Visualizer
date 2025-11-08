@@ -236,7 +236,7 @@ const OrbitingShapes: React.FC<OrbitingShapesProps> = ({ theme, intensity, analy
     };
   }, [theme, intensity, analyser, isPlaying]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 45 }} />;
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 14 }} />;
 };
 
 export default OrbitingShapes;

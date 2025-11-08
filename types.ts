@@ -45,6 +45,15 @@ export interface PlaylistItem {
   name: string;
 }
 
+export interface BackgroundImageSettings {
+  imageUrl: string | null;
+  opacity: number; // 0-100
+  blur: number; // 0-20
+  brightness: number; // 0-200
+  scale: number; // 50-200 (percentage)
+  position: 'center' | 'fill' | 'fit' | 'stretch';
+}
+
 // Effects
 export interface EffectSettings {
   enabled: boolean;

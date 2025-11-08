@@ -295,7 +295,7 @@ const MusicNotation: React.FC<MusicNotationProps> = ({ theme, intensity, analyse
       ref={canvasRef} 
       className="absolute inset-0 pointer-events-none" 
       style={{ 
-        zIndex: 50, // Higher z-index to ensure visibility
+        zIndex: 10, // Effect layer - below controls
         opacity: 1,
         display: intensity > 0 ? 'block' : 'none'
       }} 

@@ -1,22 +1,13 @@
 {
   "name": "audio-visualizer-pro",
-  "productName": "Audio Visualizer Pro",
   "private": true,
   "version": "1.0.0",
-  "description": "Professional audio visualizer desktop application",
+  "description": "Professional audio visualizer web application",
   "author": "Your Name",
   "type": "module",
-  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
-    "dev:electron": "vite --mode development",
     "build": "vite build",
-    "build:electron": "vite build && electron-builder",
-    "build:win": "vite build && electron-builder --win",
-    "build:mac": "vite build && electron-builder --mac",
-    "build:linux": "vite build && electron-builder --linux",
-    "build:dir": "vite build && electron-builder --dir",
-    "package": "vite build && electron-packager . AudioVisualizerPro --platform=win32 --arch=x64 --icon=public/favicon.ico --overwrite --out=release",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -29,64 +20,12 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "concurrently": "^9.2.1",
-    "cross-env": "^10.1.0",
-    "electron": "^39.1.1",
-    "electron-builder": "^26.0.12",
-    "electron-packager": "^17.1.2",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
-    "vite-plugin-electron": "^0.29.0",
-    "vite-plugin-electron-renderer": "^0.14.6",
     "vite-plugin-pwa": "^1.1.0",
-    "wait-on": "^8.0.1",
     "workbox-window": "^7.3.0"
-  },
-  "build": {
-    "appId": "com.audiovisualizer.app",
-    "productName": "AudioVisualizerPro",
-    "directories": {
-      "output": "release",
-      "app": "."
-    },
-    "extraResources": [
-      {
-        "from": "dist",
-        "to": "app/dist"
-      }
-    ],
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*",
-      "package.json"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "public/favicon.ico",
-      "artifactName": "${productName}-${version}-Setup.${ext}"
-    },
-    "mac": {
-      "target": ["dmg"],
-      "icon": "public/favicon.ico",
-      "category": "public.app-category.music",
-      "artifactName": "${productName}-${version}.${ext}"
-    },
-    "linux": {
-      "target": ["AppImage", "deb"],
-      "icon": "public/favicon.ico",
-      "category": "Audio",
-      "artifactName": "${productName}-${version}.${ext}"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    }
   }
 }

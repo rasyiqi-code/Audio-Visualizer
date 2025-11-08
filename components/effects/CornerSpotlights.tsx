@@ -102,7 +102,7 @@ const CornerSpotlights: React.FC<CornerSpotlightsProps> = ({ theme, intensity, a
     };
   }, [theme, intensity, analyser, isPlaying]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 80, mixBlendMode: 'screen' }} />;
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 12, mixBlendMode: 'screen' }} />;
 };
 
 export default CornerSpotlights;

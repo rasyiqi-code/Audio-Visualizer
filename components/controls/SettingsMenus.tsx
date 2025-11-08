@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Theme, Visualization, Preset, CustomVisualization, VisualEffects } from '../../types';
+import { Theme, Visualization, Preset, CustomVisualization, VisualEffects, BackgroundImageSettings } from '../../types';
 import { THEMES, BUILT_IN_VISUALIZATIONS, PRESETS } from '../../constants';
 import { AiIcon, ExportIcon, ImportIcon, ColorPaletteIcon, PresetIcon, EffectsIcon } from '../Icons';
 import EffectCard from './EffectCard';
@@ -11,6 +11,7 @@ interface SettingsMenusProps {
   currentVisualization: Visualization;
   customVisualizations: CustomVisualization[];
   effects: VisualEffects;
+  backgroundImage: BackgroundImageSettings;
   onThemeSelect: (themeName: string) => void;
   onVisualizationSelect: (visName: string) => void;
   onPresetSelect: (preset: Preset) => void;
@@ -20,6 +21,9 @@ interface SettingsMenusProps {
   onEffectToggle: (effectName: keyof VisualEffects) => void;
   onEffectIntensityChange: (effectName: keyof VisualEffects, intensity: number) => void;
   onCustomThemeClick: () => void;
+  onBackgroundImageUpload: () => void;
+  onRemoveBackgroundImage: () => void;
+  onBackgroundImageSettingChange: (key: keyof BackgroundImageSettings, value: number | string) => void;
 }
 
 export const SettingsMenus: React.FC<SettingsMenusProps> = ({
@@ -28,6 +32,7 @@ export const SettingsMenus: React.FC<SettingsMenusProps> = ({
   currentVisualization,
   customVisualizations,
   effects,
+  backgroundImage,
   onThemeSelect,
   onVisualizationSelect,
   onPresetSelect,
@@ -36,7 +41,10 @@ export const SettingsMenus: React.FC<SettingsMenusProps> = ({
   onImportClick,
   onEffectToggle,
   onEffectIntensityChange,
-  onCustomThemeClick
+  onCustomThemeClick,
+  onBackgroundImageUpload,
+  onRemoveBackgroundImage,
+  onBackgroundImageSettingChange
 }) => {
   if (!activeMenu) return null;
 
@@ -111,6 +119,116 @@ export const SettingsMenus: React.FC<SettingsMenusProps> = ({
             Color Themes <span className="text-sm font-normal text-gray-400">({THEMES.length})</span>
           </h3>
           
+          {/* Background Image Section */}
+          <div className="mb-3 p-3 rounded-lg bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/30">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-semibold text-sm flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Background Image
+              </h4>
+            </div>
+            
+            {!backgroundImage.imageUrl ? (
+              <button
+                onClick={onBackgroundImageUpload}
+                className="w-full px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-500 transition-colors font-medium text-sm flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Upload Image
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <button
+                  onClick={onRemoveBackgroundImage}
+                  className="w-full px-4 py-2 rounded-md bg-red-600 hover:bg-red-500 transition-colors font-medium text-sm flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Remove Image
+                </button>
+                
+                {/* Image Settings */}
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <div>
+                    <label className="text-xs text-gray-300 block mb-1">Opacity: {backgroundImage.opacity}%</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={backgroundImage.opacity}
+                      onChange={(e) => onBackgroundImageSettingChange('opacity', parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                      style={{'accentColor': currentTheme.primary} as React.CSSProperties}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs text-gray-300 block mb-1">Blur: {backgroundImage.blur}px</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="20"
+                      value={backgroundImage.blur}
+                      onChange={(e) => onBackgroundImageSettingChange('blur', parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                      style={{'accentColor': currentTheme.primary} as React.CSSProperties}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs text-gray-300 block mb-1">Brightness: {backgroundImage.brightness}%</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="200"
+                      value={backgroundImage.brightness}
+                      onChange={(e) => onBackgroundImageSettingChange('brightness', parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                      style={{'accentColor': currentTheme.primary} as React.CSSProperties}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs text-gray-300 block mb-1">Scale: {backgroundImage.scale}%</label>
+                    <input
+                      type="range"
+                      min="50"
+                      max="200"
+                      value={backgroundImage.scale}
+                      onChange={(e) => onBackgroundImageSettingChange('scale', parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                      style={{'accentColor': currentTheme.primary} as React.CSSProperties}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs text-gray-300 block mb-1">Position Mode</label>
+                    <div className="grid grid-cols-2 gap-1">
+                      {(['fill', 'fit', 'center', 'stretch'] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          onClick={() => onBackgroundImageSettingChange('position', mode)}
+                          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                            backgroundImage.position === mode
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Custom Theme Button */}
           <button
             onClick={onCustomThemeClick}

@@ -129,7 +129,7 @@ const LensFlare: React.FC<LensFlareProps> = ({ theme, intensity, analyser, isPla
     };
   }, [theme, intensity, analyser, isPlaying]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 70, mixBlendMode: 'screen' }} />;
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 13, mixBlendMode: 'screen' }} />;
 };
 
 export default LensFlare;

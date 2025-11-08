@@ -104,7 +104,7 @@ const LightRays: React.FC<LightRaysProps> = ({ theme, intensity, analyser, isPla
     };
   }, [theme, intensity, analyser, isPlaying]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 75, mixBlendMode: 'screen', opacity: 0.9 }} />;
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 11, mixBlendMode: 'screen', opacity: 0.9 }} />;
 };
 
 export default LightRays;

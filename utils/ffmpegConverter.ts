@@ -75,7 +75,9 @@ export const convertWebMToMP4 = async (
     
     // Read the output file
     const data = await ffmpegInstance.readFile(outputFileName);
-    const mp4Blob = new Blob([data], { type: 'video/mp4' });
+    
+    // Convert FileData to Blob - handle Uint8Array properly
+    const mp4Blob = new Blob([data as unknown as BlobPart], { type: 'video/mp4' });
     
     // Cleanup
     await ffmpegInstance.deleteFile(inputFileName);
